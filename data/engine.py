@@ -289,6 +289,7 @@ def load_animations(path):
         anim_path = sections[0]
         entity_info = anim_path.split('/')
         entity_type = entity_info[0]
+        print(entity_info)
         animation_id = entity_info[1]
         timings = sections[1].split(';')
         tags = sections[2].split(';')

@@ -21,15 +21,15 @@ while True:
             pygame.quit()
             exit()
 
-    # enemy = e.entity(50, 50 , 10, 10,'enemy')
-    # # enemy.set_pos(50,50)
-    # enemy.offset = [-12,-7]
-    # pygame.draw.rect(screen, (255, 0, 0), enemy.obj.rect)
-    # enemy.display(screen,[0,0])
+    enemy = e.entity(50, 50 , 13, 20,'enemy')
+    # enemy.set_pos(50,50)
+    enemy.offset = [-5,0]
+    pygame.draw.rect(screen, (255, 0, 0), enemy.obj.rect)
+    enemy.display(screen,[0,0])
 
-    particle = my_p.particle(50, 50, 'firefly',[0,0], 5, (255, 128, 0), [10,10])
-    pygame.draw.rect(screen, (255, 0, 0), particle.rect)
-    pygame.draw.circle(screen, particle.color, [int(particle.x), int(particle.y)], int(particle.size))
+    # particle = my_p.particle(50, 50, 'firefly',[0,0], 5, (255, 128, 0), [10,10])
+    # pygame.draw.rect(screen, (255, 0, 0), particle.rect)
+    # pygame.draw.circle(screen, particle.color, [int(particle.x), int(particle.y)], int(particle.size))
 
     pygame.display.update()
     mainClock.tick(60)
