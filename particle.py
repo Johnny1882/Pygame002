@@ -4,30 +4,38 @@ import pygame, sys, os, random, math
 import data.engine as e
 import data.custom_text as ct
 import my_function.particle as my_p
-
+import data.custom_text as ct
 
 # Functions ---------------------------------------------------- #
 def load_img(path):
     img = pygame.image.load('data/images/' + path + '.png').convert()
     img.set_colorkey((255,255,255))
     return img
+# Font ------------------------------------------------------- #
+my_font = ct.Font('data/images/small_font.png')
+my_big_font = ct.Font('data/images/large_font.png')
 # Setup pygame/window ---------------------------------------- #
 mainClock = pygame.time.Clock()
 from pygame.locals import *
 pygame.init()
 pygame.display.set_caption('game base')
 
-screen_width = 600
-screen_height = 400
-display_width = 300
-display_height = 200
+screen_width = 800
+screen_height = 500
+display_width = 400
+display_height = 250
 screen = pygame.display.set_mode((screen_width, screen_height),0,32)
 display = pygame.Surface((display_width, display_height))
 card_display = pygame.Surface((200, 150))
 card_display_background = pygame.Surface((200, 150))
 
+# load img--------------------------------------------------- #
 e.load_animations('data/images/entities/')
 card_back = load_img('card_back')
+heart_img = load_img('heart')
+coin_img = load_img('coin')
+shopgrid_img = load_img('shop_grid')
+turrent1_img = load_img('turrent_1')
 
 card_images = {}
 card_types = ['1 point', 'double jump 5s', 'heal']
@@ -49,6 +57,8 @@ show_card = False
 
 space = right = left = key_t = False
 
+health_val = 100
+coin_val = 100
 
 # Loop ------------------------------------------------------- #
 while True:
@@ -65,29 +75,31 @@ while True:
             p = my_p.particle(mx, my, 'firefly',[random.randint(0, 20) / 10 - 1, random.randint(0, 20) / 10 - 1], 3, random.choice([(255, 255, 0), (255, 0, 0), (255, 128, 0)]), [6,6])
             particles.append(p)
     
-
+    # general_logic --------------------------------------------------------------------------------------------- #
+    if health_val <= 0:
+        my_big_font.render(display, 'GAME OVER', [150,100])
     # particles --------------------------------------------------------------------------------------------- #
-        for particle in particles:
-            if particle.type == 'firefly':
-                particle.size -= 0.005
-            elif particle.type == 'ghost_die':
-                particle.size -= 0.3
-            elif particle.type == 'turrent_1':
-                pass
+    for particle in particles:
+        if particle.type == 'firefly':
+            particle.size -= 0.005
+        elif particle.type == 'ghost_die':
+            particle.size -= 0.3
+        elif particle.type == 'turrent_1':
+            pass
 
-            particle.update()
-            
+        particle.update()
+        
 
-            if particle.type == 'firefly' or particle.type == 'ghost_die':
-                pygame.draw.circle(display, particle.color, [int(particle.x), int(particle.y)], int(particle.size))
-                particle.motion[0] *= 0.99
-                particle.motion[1] *= 0.99
-            
-            elif particle.type == 'turrent_1':
-                pygame.draw.rect(display, particle.color, (particle.x, particle.y, particle.w, particle.h))
+        if particle.type == 'firefly' or particle.type == 'ghost_die':
+            pygame.draw.circle(display, particle.color, [int(particle.x), int(particle.y)], int(particle.size))
+            particle.motion[0] *= 0.99
+            particle.motion[1] *= 0.99
+        
+        elif particle.type == 'turrent_1':
+            pygame.draw.rect(display, particle.color, (particle.x, particle.y, particle.w, particle.h))
 
-            if particle.size <= 0:
-                particles.remove(particle)
+        if particle.size <= 0:
+            particles.remove(particle)
         
     # Buttons ------------------------------------------------ #
     for event in pygame.event.get():
@@ -112,12 +124,27 @@ while True:
         if event.type == MOUSEBUTTONUP:
             mouse_down = False
     
+    # UI-Info --------------------------------------------------
+    display.blit(heart_img,(5,5))
+    my_big_font.render(display, str(health_val), (20, 5))
+    display.blit(coin_img,(38,2))
+    my_big_font.render(display, str(coin_val), (65, 5))
+    # pygame.draw.rect(display, (255, 0, 0), pygame.Rect(70,0,50,35))
+    shopgrid_img_temp = pygame.transform.scale(shopgrid_img, (40, 45))
+    #turrent1
+
+    display.blit(shopgrid_img_temp,(190,0))
+    display.blit(turrent1_img,(195,10))
+    turrent1_collide = pygame.Rect(190,0,27,34)
+    
+    
+
     # Turrent ------------------------------------------------ #
-    if key_t:
+    if turrent1_collide.collidepoint(mx,my) and mouse_down:
         setting_turrent = True
         model_turrent = e.entity(mx, my, 10, 10, 'turrent_1')
-        # turrents.append([turrent, 50])
-        key_t = False
+        coin_val -= 10
+        mouse_down = False
     
     if setting_turrent:
         show_w = 42
@@ -149,39 +176,28 @@ while True:
         
     
     #---------------------ENEMY--------------------------------
+    #generation
     if not show_card:
-        if random.randint(1,26) == 1:
-            enemy = [0,e.entity(random.randint(-10,0),random.randint(0, display_height)//33 * 33 + 3,13,20,'enemy')]
+        if random.randint(1,2) == 1:
+            enemy = [0,e.entity(random.randint(-10,0),random.randint(33, display_height)//33 * 33 + 3,13,20,'enemy')]
             enemy[1].offset = [-5,0]
             enemies.append(enemy)
         
         
         for enemy in enemies:
-            # if display_r.colliderect(enemy[1].obj.rect):
-                # enemy[0] += 0.2
-                # if enemy[0] > 3:
-                #     enemy[0] = 3
                 enemy_movement = [0.5,enemy[0]]
-                # if display_width > enemy[1].x + 5:
-                #     enemy_movement[0] = 0.5
-                # if display_width < enemy[1].x - 5:
-                #     enemy_movement[0] = -0.5
-                # if display_height/2 > enemy[1].y + 5:
-                #     enemy_movement[1] = 0.2
-                # if display_height/2 < enemy[1].y - 5:
-                #     enemy_movement[1] = -0.2
                 collision_types = enemy[1].move(enemy_movement, [])
-
-                # if not display_r.colliderect(enemy[1].obj.rect):
-                #     enemies.remove(enemy)
-
                 enemy[1].display(display,[0,0])
+                if enemy[1].x > display_width:
+                    enemies.remove(enemy)
+                    health_val -= 1
         
         for enemy in enemies:
             for particle in particles:
                 if enemy[1].obj.rect.colliderect(particle.rect):
                     if enemy in enemies:
                         enemies.remove(enemy)
+                        coin_val += 1
                         for i in range(3):
                             p = my_p.particle(enemy[1].x, enemy[1].y, 'ghost_die',[random.randint(0, 20) / 10 - 1, random.randint(0, 20) / 10 - 1], 5, (255, 255, 255), [0,0])
                             particles.append(p)
@@ -190,7 +206,7 @@ while True:
                     
 
             
-    # UI --------------------------------------------------
+    # UI-Card --------------------------------------------------
     # card_visuals = [images_name, x, y]
     if not show_card:
         card_display_background.blit(pygame.transform.scale(screen, (200, 150)),(0,0))
@@ -229,6 +245,7 @@ while True:
     # if card_visuals != []:
     #     overlay_surf.blit(description,(box_pos,39))
     #     text.show_text(card_visuals[hovered_card][0],box_pos+5,44,1,185,font_2,overlay_surf)
+
     # Update ------------------------------------------------- #
     if show_card:
       display.blit(pygame.transform.scale(card_display,(display_width, display_height)), (0, 0))
